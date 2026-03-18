@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>zk-viz</title>
+  <script>(function(){var t=localStorage.getItem('theme');if(t)document.documentElement.classList.add(t);})()</script>
+  <style>
+    /* ── Meyer Reset ─────────────────────────────────────────────────────── */
+    html, body, div, span, applet, object, iframe,
+    h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+    a, abbr, acronym, address, big, cite, code,
+    del, dfn, em, img, ins, kbd, q, s, samp,
+    small, strike, strong, sub, sup, tt, var,
+    b, u, i, center,
+    dl, dt, dd, ol, ul, li,
+    fieldset, form, label, legend,
+    table, caption, tbody, tfoot, thead, tr, th, td,
+    article, aside, canvas, details, embed,
+    figure, figcaption, footer, header, hgroup,
+    menu, nav, output, ruby, section, summary,
+    time, mark, audio, video {
+      padding: 0;
+      border: 0;
+      font-size: 100%;
+      font: inherit;
+      vertical-align: baseline;
+    }
+    article, aside, details, figcaption, figure,
+    footer, header, hgroup, menu, nav, section { display: block; }
+    body { line-height: 1; }
+    ol, ul { list-style: none; }
+    blockquote, q { quotes: none; }
+    blockquote:before, blockquote:after,
+    q:before, q:after { content: ''; content: none; }
+    table { border-collapse: collapse; border-spacing: 0; }
+
+    /* ── The Monospace Web (verbatim) ───────────────────────────────────── */
+    @import url('https://fonts.cdnfonts.com/css/jetbrains-mono-2');
+
+    :root {
+      --font-family: "JetBrains Mono", monospace;
+      --line-height: 1.20rem;
+      --border-thickness: 2px;
+      --text-color: #000;
+      --text-color-alt: #666;
+      --background-color: #fff;
+      --background-color-alt: #eee;
+      --font-weight-normal: 500;
+      --font-weight-medium: 600;
+      --font-weight-bold: 800;
+      font-family: var(--font-family);
+      font-optical-sizing: auto;
+      font-weight: var(--font-weight-normal);
+      font-style: normal;
+      font-variant-numeric: tabular-nums lining-nums;
+      font-size: 16px;
+    }
+
+    /* Manual theme override (takes priority over prefers-color-scheme) */
+    html.light {
+      --text-color: #000;
+      --text-color-alt: #666;
+      --background-color: #fff;
+      --background-color-alt: #eee;
+    }
+    html.dark {
+      --text-color: #fff;
+      --text-color-alt: #aaa;
+      --background-color: #000;
+      --background-color-alt: #111;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not(.light):not(.dark) {
+        --text-color: #fff;
+        --text-color-alt: #aaa;
+        --background-color: #000;
+        --background-color-alt: #111;
+      }
+    }
+
+    * { box-sizing: border-box; }
+    * + * { margin-top: var(--line-height); }
+
+    html {
+      display: flex;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      flex-direction: column;
+      align-items: center;
+      background: var(--background-color);
+      color: var(--text-color);
+    }
+
+    body {
+      position: relative;
+      width: 100%;
+      margin: 0;
+      padding: var(--line-height) 2ch;
+      max-width: calc(min(80ch, round(down, 100%, 1ch)));
+      line-height: var(--line-height);
+      overflow-x: hidden;
+    }
+
+    @media screen and (max-width: 480px) {
+      :root { font-size: 14px; }
+      body { padding: var(--line-height) 1ch; }
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-weight: var(--font-weight-bold);
+      margin: calc(var(--line-height) * 2) 0 var(--line-height);
+      line-height: var(--line-height);
+    }
+    h1 {
+      font-size: 2rem;
+      line-height: calc(2 * var(--line-height));
+      margin-bottom: calc(var(--line-height) * 2);
+      text-transform: uppercase;
+    }
+    h2 { font-size: 1rem; text-transform: uppercase; }
+
+    hr {
+      position: relative;
+      display: block;
+      height: var(--line-height);
+      margin: calc(var(--line-height) * 1.5) 0;
+      border: none;
+      color: var(--text-color);
+    }
+    hr:after {
+      display: block;
+      content: "";
+      position: absolute;
+      top: calc(var(--line-height) / 2 - var(--border-thickness));
+      left: 0;
+      width: 100%;
+      border-top: calc(var(--border-thickness) * 3) double var(--text-color);
+      height: 0;
+    }
+
+    a { text-decoration-thickness: var(--border-thickness); }
+    a:link, a:visited { color: var(--text-color); }
+
+    p { word-break: break-word; word-wrap: break-word; hyphens: auto; margin-bottom: var(--line-height); }
+    strong { font-weight: var(--font-weight-bold); }
+    em { font-style: italic; }
+
+    pre { white-space: pre; overflow-x: auto; margin: var(--line-height) 0; overflow-y: hidden; }
+    pre, code { font-family: var(--font-family); }
+    code { font-weight: var(--font-weight-medium); }
+
+    ul, ol { padding: 0; margin: 0 0 var(--line-height); }
+    ul { list-style-type: square; padding: 0 0 0 2ch; }
+    ol { list-style-type: none; counter-reset: item; padding: 0; }
+    ol li:before { content: counters(item, ".") ". "; counter-increment: item; font-weight: var(--font-weight-medium); }
+    li { margin: 0; padding: 0; }
+    li::marker { line-height: 0; }
+
+    input, button, textarea {
+      border: var(--border-thickness) solid var(--text-color);
+      padding: calc(var(--line-height) / 2 - var(--border-thickness)) calc(1ch - var(--border-thickness));
+      margin: 0;
+      font: inherit;
+      font-weight: inherit;
+      height: calc(var(--line-height) * 2);
+      width: auto;
+      overflow: visible;
+      background: var(--background-color);
+      color: var(--text-color);
+      line-height: normal;
+      -webkit-appearance: none;
+    }
+    button { text-transform: uppercase; font-weight: var(--font-weight-medium); cursor: pointer; }
+    button:hover { background: var(--background-color-alt); }
+    button:active { transform: translate(2px, 2px); }
+    button:focus, input:focus { --border-thickness: 3px; outline: none; }
+
+    .header { margin-bottom: calc(var(--line-height) * 2); }
+    .header h1 { margin: 0; }
+
+    /* ── App-specific ────────────────────────────────────────────────────── */
+
+    /* Nav: flex row — reset the owl selector margins */
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 0 2ch;
+      margin-bottom: 0;
+      padding-bottom: var(--line-height);
+      border-bottom: calc(var(--border-thickness) * 3) double var(--text-color);
+    }
+    nav > * { margin-top: 0; }
+    nav a { font-weight: var(--font-weight-medium); text-decoration: none; }
+    .theme-toggle {
+      margin-left: auto;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font: inherit;
+      color: var(--text-color);
+      padding: 0;
+      height: auto;
+      text-transform: none;
+    }
+    .theme-toggle:hover { background: none; }
+
+    /* Graph layout */
+    #layout {
+      display: grid;
+      grid-template-columns: 1fr 26ch;
+      height: 70vh;
+      border: var(--border-thickness) solid var(--text-color);
+      margin-top: calc(var(--line-height) * 2);
+    }
+    #canvas { overflow: hidden; margin-top: 0; }
+    #canvas svg { width: 100%; height: 100%; display: block; margin-top: 0; }
+    #panel {
+      border-left: var(--border-thickness) solid var(--text-color);
+      padding: var(--line-height) 1ch;
+      overflow-y: auto;
+      font-size: 0.875rem;
+      margin-top: 0;
+    }
+    #panel > * { margin-top: 0; }
+    #panel h3 { margin: 0 0 calc(var(--line-height) / 2) 0; font-size: 1rem; text-transform: none; }
+    #panel p { margin: 0 0 calc(var(--line-height) / 4) 0; }
+    #panel .meta { opacity: 0.6; }
+    #panel .hint { opacity: 0.5; }
+    #panel .read-link { display: inline-block; margin-top: calc(var(--line-height) / 2); }
+
+    .tag {
+      display: inline-block;
+      border: var(--border-thickness) solid var(--text-color);
+      padding: 0 0.4ch;
+      margin: 0 0.4ch 0.3rem 0;
+      font-size: 0.7rem;
+    }
+
+    /* Note reader */
+    #note-view { display: none; }
+    #note-view.visible { display: block; }
+    #note-view h2 { margin-bottom: calc(var(--line-height) / 2); }
+    #note-view .note-meta { opacity: 0.6; margin-bottom: var(--line-height); }
+    .note-body p { margin-bottom: calc(var(--line-height) / 2); }
+    .note-body blockquote {
+      border-left: calc(var(--border-thickness) * 3) solid var(--text-color);
+      padding-left: 2ch;
+      margin-left: 0;
+      opacity: 0.75;
+    }
+    .note-body figure {
+      margin: var(--line-height) 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .note-body figure img {
+      height: 20rem;
+      width: auto;
+      max-width: 100%;
+      object-fit: contain;
+      display: block;
+    }
+    .note-body figcaption {
+      font-size: 0.8rem;
+      opacity: 0.6;
+      margin-top: calc(var(--line-height) / 4);
+      text-align: center;
+      font-style: normal;
+    }
+    .note-link {
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-style: dashed;
+    }
+
+    /* Note list */
+    #note-list { margin-top: calc(var(--line-height) * 3); }
+    #note-list-items > * { margin-top: 0; }
+    .note-item {
+      border: var(--border-thickness) solid var(--text-color);
+      padding: calc(var(--line-height) / 2) 1ch;
+      margin-bottom: var(--line-height);
+      cursor: pointer;
+    }
+    .note-item > * { margin-top: 0; }
+    .note-item:hover { background: var(--background-color-alt); }
+    .note-item-title { font-weight: var(--font-weight-bold); margin: 0; }
+    .note-item-meta { margin: calc(var(--line-height) / 4) 0 0; opacity: 0.6; font-size: 0.8rem; }
+
+    /* D3 graph SVG */
+    .node circle {
+      fill: var(--background-color);
+      stroke: var(--text-color);
+      stroke-width: 1.5px;
+      cursor: pointer;
+    }
+    .node circle.active { fill: var(--text-color); }
+    .node text {
+      font-family: var(--font-family);
+      font-size: 10px;
+      fill: var(--text-color);
+      pointer-events: none;
+      dominant-baseline: middle;
+    }
+    .node text.active { fill: var(--background-color); }
+    .edge { stroke: var(--text-color); stroke-opacity: 0.2; stroke-width: 1px; }
+    .edge.lit { stroke-opacity: 0.7; }
+
+    /* Reset owl selector inside SVG */
+    svg * + * { margin-top: 0; }
+
+    @media (max-width: 640px) {
+      #layout { grid-template-columns: 1fr; grid-template-rows: 50vh auto; height: auto; }
+      #panel { border-left: none; border-top: var(--border-thickness) solid var(--text-color); max-height: 35vh; }
+    }
+  </style>
+</head>
+<body data-notes-dir="./">
+  <nav>
+    <strong>zk-viz</strong>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle colour scheme">◐</button>
+  </nav>
+
+  <div class="header">
+    <h1 id="page-title">Notes Graph</h1>
+  </div>
+
+  <hr>
+
+  <div id="layout">
+    <div id="canvas"><svg id="svg"></svg></div>
+    <aside id="panel">
+      <p class="hint">Click a node to view note details.</p>
+    </aside>
+  </div>
+
+  <section id="note-view">
+    <hr>
+    <h2 id="note-view-title"></h2>
+    <p class="note-meta" id="note-view-meta"></p>
+    <div class="note-body" id="note-view-body"></div>
+  </section>
+
+  <hr>
+
+  <section id="note-list">
+    <h2>All Notes</h2>
+    <div id="note-list-items"></div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked@13/marked.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
